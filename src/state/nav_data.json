@@ -1,0 +1,30 @@
+{
+  "nodes": {
+    "computer":  { "pos": [0, 0, 0.1],      "face": [0.3, 2.8, -2.2],  "stop": true },
+    "dish":      { "pos": [-2.9, 0, 0.9],   "face": [-6.0, 3.0, -1.6], "stop": true },
+    "westWalk":  { "pos": [-3.9, 0, 5.3],   "face": [0, 1.5, 0],       "stop": true },
+    "table":     { "pos": [0.9, -0.9, 8.2], "face": [0.9, -0.5, 9.5],  "stop": true },
+    "batmobile": { "pos": [9.2, -2.9, -1.6], "face": [12.2, -1.5, -3.5], "stop": true },
+    "j_plateauS": { "pos": [0, 0, 3.4],      "stop": false },
+    "j_south":    { "pos": [1.5, -0.9, 6.8], "stop": false },
+    "j_eastTop":  { "pos": [2.3, 0, 0.9],    "stop": false },
+    "j_eastMid":  { "pos": [5.2, -1.6, 0.6], "stop": false },
+    "j_bay":      { "pos": [7.2, -2.9, -0.6], "stop": false },
+    "j_se":       { "pos": [5.4, -2.0, 4.8], "stop": false }
+  },
+  "edges": [
+    ["computer", "dish"],
+    ["computer", "j_plateauS"],
+    ["dish", "j_plateauS"],
+    ["j_plateauS", "westWalk"],
+    ["j_plateauS", "j_south"],
+    ["j_south", "table"],
+    ["j_south", "westWalk"],
+    ["j_south", "j_se"],
+    ["j_se", "j_bay"],
+    ["computer", "j_eastTop"],
+    ["j_eastTop", "j_eastMid"],
+    ["j_eastMid", "j_bay"],
+    ["j_bay", "batmobile"]
+  ]
+}

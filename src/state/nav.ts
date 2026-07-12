@@ -1,57 +1,42 @@
 import * as THREE from 'three'
-
-const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z)
+import navData from './nav_data.json'
 
 /**
- * Navigation graph for the cave, hand-built from a sketch of permitted stop
- * spots and walking paths (and verified against the walkable geometry).
- * Characters may only stand still at `stop` nodes and may only walk along
- * edges — no more hanging off ledges or loitering in odd corners.
+ * Navigation graph — stop spots and permitted walking paths.
  *
+ * The data lives in nav_data.json and is AUTHORED IN BLENDER: place
+ * STOP_<id> empties and trace a PATHS wireframe mesh over the walkways,
+ * then run tools/blender_export_nav.py (Scripting tab) to regenerate the
+ * JSON. See that script's docstring for the full convention.
+ *
+ * Characters only stand still at stop nodes and only walk along edges.
  * Y values are nominal; runtime ground-snapping supplies exact heights.
  */
 export interface NavNode {
   pos: THREE.Vector3
-  /** where to face while stopped here (omit for junctions) */
   face?: THREE.Vector3
-  /** true if a character may stop and "do things" here */
-  stop?: boolean
+  stop: boolean
 }
 
-export const NAV: Record<string, NavNode> = {
-  // ---- stop spots (the big red dots) ----
-  computer:  { pos: V(0, 0, 0.1),      face: V(0.3, 2.8, -2.2), stop: true },  // Batcomputer
-  dish:      { pos: V(-2.9, 0, 0.9),   face: V(-6.0, 3.0, -1.6), stop: true }, // side station by the dish/left screens
-  westWalk:  { pos: V(-3.9, 0, 5.3),   face: V(0, 1.5, 0), stop: true },       // west walkway by the crates
-  tableSpot: { pos: V(0.9, -0.9, 8.2), face: V(0.9, -0.5, 9.5), stop: true },  // round table on the south platform
-  batmobile: { pos: V(9.2, -2.9, -1.6), face: V(12.2, -1.5, -3.5), stop: true }, // wrenching on the car
+export type NavId = string
 
-  // ---- junctions (path only) ----
-  j_plateauS: { pos: V(0, 0, 3.4) },        // top of the south stairs
-  j_south:    { pos: V(1.5, -0.9, 6.8) },   // bottom of the south stairs
-  j_eastTop:  { pos: V(2.3, 0, 0.9) },      // top of the east stairs
-  j_eastMid:  { pos: V(5.2, -1.6, 0.6) },   // east stairs landing
-  j_bay:      { pos: V(7.2, -2.9, -0.6) },  // bay entrance
-  j_se:       { pos: V(5.4, -2.0, 4.8) },   // south walkway, east of the generator
+export const NAV: Record<NavId, NavNode> = {}
+for (const [id, n] of Object.entries(navData.nodes as Record<string, { pos: number[]; face?: number[]; stop: boolean }>)) {
+  NAV[id] = {
+    pos: new THREE.Vector3(...(n.pos as [number, number, number])),
+    face: n.face ? new THREE.Vector3(...(n.face as [number, number, number])) : undefined,
+    stop: n.stop,
+  }
 }
 
-export type NavId = keyof typeof NAV
+export const EDGES = (navData.edges as [string, string][]).filter(
+  ([a, b]) => NAV[a] && NAV[b],
+)
 
-export const EDGES: Array<[NavId, NavId]> = [
-  ['computer', 'dish'],
-  ['computer', 'j_plateauS'],
-  ['dish', 'j_plateauS'],
-  ['j_plateauS', 'westWalk'],
-  ['j_plateauS', 'j_south'],
-  ['j_south', 'tableSpot'],
-  ['j_south', 'westWalk'],
-  ['j_south', 'j_se'],
-  ['j_se', 'j_bay'],
-  ['computer', 'j_eastTop'],
-  ['j_eastTop', 'j_eastMid'],
-  ['j_eastMid', 'j_bay'],
-  ['j_bay', 'batmobile'],
-]
+// The directors reference these by id; warn loudly if an export dropped one.
+for (const required of ['computer', 'dish', 'westWalk', 'table', 'batmobile']) {
+  if (!NAV[required]) console.warn(`[nav] missing required stop "${required}" — check the Blender export`)
+}
 
 const adj = new Map<NavId, NavId[]>()
 for (const [a, b] of EDGES) {
@@ -63,7 +48,7 @@ for (const [a, b] of EDGES) {
 
 /** Dijkstra by euclidean edge length. Returns node positions from (excl) start to (incl) goal. */
 export function navPath(from: NavId, to: NavId): THREE.Vector3[] {
-  if (from === to) return []
+  if (from === to || !NAV[from] || !NAV[to]) return NAV[to] ? [NAV[to].pos.clone()] : []
   const dist = new Map<NavId, number>([[from, 0]])
   const prev = new Map<NavId, NavId>()
   const open = new Set<NavId>([from])
@@ -86,7 +71,7 @@ export function navPath(from: NavId, to: NavId): THREE.Vector3[] {
       }
     }
   }
-  if (!prev.has(to)) return [NAV[to].pos.clone()] // disconnected — walk straight (shouldn't happen)
+  if (!prev.has(to)) return [NAV[to].pos.clone()] // disconnected — walk straight (exporter warns)
   const path: NavId[] = []
   for (let n: NavId | undefined = to; n && n !== from; n = prev.get(n)) path.unshift(n)
   return path.map((id) => NAV[id].pos.clone())
@@ -96,12 +81,14 @@ export function navPath(from: NavId, to: NavId): THREE.Vector3[] {
 export function nearestNode(p: THREE.Vector3): NavId {
   let best: NavId = 'computer'
   let bd = Infinity
-  for (const id of Object.keys(NAV) as NavId[]) {
+  for (const id of Object.keys(NAV)) {
     const d2 = NAV[id].pos.distanceToSquared(p)
     if (d2 < bd) { bd = d2; best = id }
   }
   return best
 }
 
-/** Stop nodes Robin strolls between while idle. */
-export const ROBIN_WANDER: NavId[] = ['westWalk', 'tableSpot', 'dish', 'batmobile']
+/** Stop nodes Robin strolls between while idle (everywhere but Batman's desk). */
+export const ROBIN_WANDER: NavId[] = Object.keys(NAV).filter(
+  (id) => NAV[id].stop && id !== 'computer',
+)

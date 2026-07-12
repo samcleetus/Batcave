@@ -120,7 +120,7 @@ export default function Scene({ batman, robin }: Props) {
           url="/models/robin.glb"
           scale={ROBIN_SCALE}
           capeBase={-1.45}
-          startPosition={NAV.tableSpot.pos}
+          startPosition={NAV.table.pos}
           walkSpeed={2.6}
           bobAmp={0.06}
         />

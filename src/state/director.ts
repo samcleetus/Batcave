@@ -124,7 +124,7 @@ export class RobinDirector extends Director {
   private nextWanderAt = Date.now() + 3_000
 
   constructor() {
-    super('tableSpot')
+    super('table')
   }
 
   /** Robin is young and restless — strolls between permitted stop spots. */
@@ -163,7 +163,7 @@ export class RobinDirector extends Director {
     if (this.state === 'walking') return
     if (this.state === 'working' && this.activeAgents === 0 && this.idleAt && now > this.idleAt) {
       this.idleAt = 0
-      this.goTo('tableSpot', 'idle')
+      this.goTo('table', 'idle')
       this.nextWanderAt = now + WANDER_PAUSE_MIN
       return
     }
