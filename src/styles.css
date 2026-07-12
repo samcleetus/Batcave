@@ -22,6 +22,19 @@ body { font-family: 'SF Mono', ui-monospace, Menlo, monospace; }
   letter-spacing: 0.08em;
 }
 .reset-view:hover { background: rgba(255, 211, 77, 0.12); }
+.ambient-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid rgba(143, 161, 192, 0.35); border-radius: 10px;
+  color: #8fa1c0; font: inherit; font-size: 10px; padding: 2px 8px 2px 3px; cursor: pointer;
+  letter-spacing: 0.08em; transition: color .15s, border-color .15s;
+}
+.ambient-toggle .knob {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #55617a; transition: background .15s, transform .15s;
+}
+.ambient-toggle.on { color: #ffd34d; border-color: rgba(255, 211, 77, 0.45); }
+.ambient-toggle.on .knob { background: #ffd34d; box-shadow: 0 0 6px #ffd34d88; transform: translateX(2px); }
+.ambient-toggle:hover { border-color: rgba(255, 211, 77, 0.5); }
 .dot { width: 8px; height: 8px; border-radius: 50%; }
 .dot.on { background: #35e06a; box-shadow: 0 0 8px #35e06a; }
 .dot.off { background: #e04040; }

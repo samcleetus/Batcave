@@ -28,6 +28,18 @@ export default function App() {
   const [robinState, setRobinState] = useState<BatmanState>('idle')
   const [uiTool, setUiTool] = useState<string | null>(null)
   const sim = useMemo(() => new URLSearchParams(location.search).has('sim'), [])
+  // Ambient mode: loop the scripted session even without Claude Code running.
+  // ?sim forces it on; otherwise the choice persists in localStorage.
+  const [ambient, setAmbient] = useState(
+    () => sim || localStorage.getItem('batcave-ambient') === '1',
+  )
+  const toggleAmbient = useCallback(() => {
+    setAmbient((v) => {
+      const next = !v
+      try { localStorage.setItem('batcave-ambient', next ? '1' : '0') } catch { /* private mode */ }
+      return next
+    })
+  }, [])
 
   const handleEvent = useCallback((e: BatEvent) => {
     batman.handleEvent(e)
@@ -44,9 +56,9 @@ export default function App() {
   const connected = useEventSocket(handleEvent, !sim)
 
   useEffect(() => {
-    if (!sim) return
-    return startSim(handleEvent)
-  }, [sim, handleEvent])
+    if (!ambient) return
+    return startSim(handleEvent) // cleanup cancels the loop when toggled off
+  }, [ambient, handleEvent])
 
   // low-frequency poll of the mutable directors for UI chips
   useEffect(() => {
@@ -68,6 +80,8 @@ export default function App() {
         tool={uiTool}
         connected={connected}
         sim={sim}
+        ambient={ambient}
+        onToggleAmbient={toggleAmbient}
       />
     </>
   )

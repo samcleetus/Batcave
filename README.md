@@ -23,6 +23,10 @@ npm stop             # shut it down
 | `localhost:3333` | Live — driven by Claude Code hooks |
 | `localhost:3333/?sim` | Simulation — scripted demo session, no setup needed |
 
+The **AMBIENT** toggle (top-left) keeps the cave busy with a looping scripted
+session even when Claude Code isn't running; switch it off and the characters
+only react to real activity. The choice persists across reloads.
+
 ## Connect Claude Code
 
 ```bash

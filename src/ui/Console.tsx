@@ -22,9 +22,11 @@ interface Props {
   tool: string | null
   connected: boolean
   sim: boolean
+  ambient: boolean
+  onToggleAmbient: () => void
 }
 
-export default function Console({ lines, state, robinState, tool, connected, sim }: Props) {
+export default function Console({ lines, state, robinState, tool, connected, sim, ambient, onToggleAmbient }: Props) {
   const robinBusy = robinState === 'working' || robinState === 'walking'
   return (
     <>
@@ -35,6 +37,15 @@ export default function Console({ lines, state, robinState, tool, connected, sim
         {tool && <span className="tool">{tool}</span>}
         {robinBusy && <span className="robin">ROBIN: {ROBIN_LABEL[robinState]}</span>}
         {sim && <span className="simtag">SIM</span>}
+        <button
+          className={`ambient-toggle ${ambient ? 'on' : ''}`}
+          title={ambient
+            ? 'Ambient mode ON — the cave stays busy even without Claude Code'
+            : 'Ambient mode OFF — the cave only reacts to real Claude Code activity'}
+          onClick={onToggleAmbient}
+        >
+          <span className="knob" /> AMBIENT
+        </button>
         <button
           className="reset-view"
           title="Reset camera (drag to orbit, scroll to zoom, right-drag to pan)"
