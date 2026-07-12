@@ -78,6 +78,16 @@ app.get('/health', (_req, res) =>
   res.json({ ok: true, clients: wss.clients.size }),
 )
 
+httpServer.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[batcave] port ${PORT} is already in use — a stale server is running.`)
+    console.error(`[batcave] fix: lsof -ti :${PORT} | xargs kill   (then npm start again)`)
+  } else {
+    console.error('[batcave] server error:', err)
+  }
+  process.exit(1)
+})
+
 httpServer.listen(PORT, '127.0.0.1', () => {
   console.log(`[batcave] server on http://127.0.0.1:${PORT} (ws: /ws)`)
   console.log(`[batcave] auth token → ~/.batcave/auth-token`)
