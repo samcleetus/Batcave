@@ -26,7 +26,7 @@ from mathutils import Vector
 SCALE = 3.2
 FLOOR_Z = -1.0     # blender z of the computer-platform floor (app y=0)
 SNAP_DIST = 0.3    # blender units: PATHS vertex -> STOP empty binding
-REQUIRED = ['computer', 'dish', 'westWalk', 'table', 'batmobile']
+REQUIRED = ['computer', 'batmobile']  # other roles fall back by name in src/state/nav.ts
 
 
 def to_app(v):
@@ -46,19 +46,32 @@ def main():
                 'face': face,
             }
 
-    paths = bpy.data.objects.get('PATHS')
+    paths = next((bpy.data.objects.get(n) for n in ('PATHS', 'WalkPaths', 'WalkPath')
+                  if bpy.data.objects.get(n)), None)
     if paths is None or paths.type != 'MESH':
-        raise RuntimeError("No mesh object named 'PATHS' found — trace the walk network first.")
+        raise RuntimeError("No mesh named 'PATHS' / 'WalkPaths' found — trace the walk network first.")
 
     mesh = paths.data
     mw = paths.matrix_world
     verts = [mw @ v.co for v in mesh.vertices]
+
+    # weld coincident vertices (un-merged doubles would split the graph)
+    MERGE_DIST = 0.15
+    remap = list(range(len(verts)))
+    for i in range(len(verts)):
+        for j in range(i):
+            if remap[j] == j and (verts[i] - verts[j]).length < MERGE_DIST:
+                remap[i] = j
+                break
 
     # bind vertices to stops (nearest within SNAP_DIST), else junction
     vid_to_node = {}
     used = set()
     nodes = {}
     for i, v in enumerate(verts):
+        if remap[i] != i:
+            vid_to_node[i] = vid_to_node[remap[i]]
+            continue
         best, bd = None, SNAP_DIST
         for sid, s in stops.items():
             d = (s['pos'] - v).length
@@ -81,7 +94,8 @@ def main():
                       'face': to_app(stops[sid]['face']), 'stop': True}
 
     edges = sorted({tuple(sorted((vid_to_node[e.vertices[0]], vid_to_node[e.vertices[1]])))
-                    for e in mesh.edges})
+                    for e in mesh.edges
+                    if vid_to_node[e.vertices[0]] != vid_to_node[e.vertices[1]]})
 
     missing = [r for r in REQUIRED if r not in nodes]
 

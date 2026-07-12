@@ -4,7 +4,7 @@ import {
   THINKING_AFTER, BREAK_AFTER, BROOD_AFTER, ROBIN_LINGER,
   WANDER_PAUSE_MIN, WANDER_PAUSE_MAX,
 } from '../config'
-import { NAV, NavId, navPath, nearestNode, ROBIN_WANDER } from './nav'
+import { NAV, NavId, navPath, nearestNode, ROBIN_WANDER, ROLES } from './nav'
 
 /**
  * Directors — single-character state machines driven by Claude Code events.
@@ -75,8 +75,8 @@ export class BatmanDirector extends Director {
   sessionActive = false
 
   constructor() {
-    super('westWalk')
-    this.goTo('computer', 'idle') // walk in on load
+    super(ROLES.batmanBrood)
+    this.goTo(ROLES.batmanWork, 'idle') // walk in on load
   }
 
   handleEvent(e: BatEvent) {
@@ -84,13 +84,13 @@ export class BatmanDirector extends Director {
       case 'session_start':
         this.sessionActive = true
         this.touch()
-        this.goTo('computer', 'working')
+        this.goTo(ROLES.batmanWork, 'working')
         break
       case 'prompt':
       case 'tool_start':
         this.currentTool = e.tool ?? this.currentTool
         this.touch()
-        this.goTo('computer', 'working')
+        this.goTo(ROLES.batmanWork, 'working')
         break
       case 'tool_end':
         this.touch()
@@ -111,9 +111,9 @@ export class BatmanDirector extends Director {
       this.state = 'thinking'
       this.currentTool = null
     } else if (this.state === 'thinking' && quiet > BREAK_AFTER) {
-      this.goTo('batmobile', 'break')          // wrench on the car
+      this.goTo(ROLES.batmanBreak, 'break')    // wrench on the car
     } else if (this.state === 'break' && quiet > BROOD_AFTER) {
-      this.goTo('westWalk', 'brooding')        // brood by the crates
+      this.goTo(ROLES.batmanBrood, 'brooding') // brood in the quiet corner
     }
   }
 }
@@ -124,7 +124,7 @@ export class RobinDirector extends Director {
   private nextWanderAt = Date.now() + 3_000
 
   constructor() {
-    super('table')
+    super(ROLES.robinHome)
   }
 
   /** Robin is young and restless — strolls between permitted stop spots. */
@@ -141,7 +141,7 @@ export class RobinDirector extends Director {
         this.activeAgents++
         this.currentTool = e.detail || 'agent task'
         this.touch()
-        this.goTo('dish', 'working')
+        this.goTo(ROLES.robinStation, 'working')
         break
       case 'agent_done':
         this.activeAgents = Math.max(0, this.activeAgents - 1)
@@ -163,7 +163,7 @@ export class RobinDirector extends Director {
     if (this.state === 'walking') return
     if (this.state === 'working' && this.activeAgents === 0 && this.idleAt && now > this.idleAt) {
       this.idleAt = 0
-      this.goTo('table', 'idle')
+      this.goTo(ROLES.robinHome, 'idle')
       this.nextWanderAt = now + WANDER_PAUSE_MIN
       return
     }

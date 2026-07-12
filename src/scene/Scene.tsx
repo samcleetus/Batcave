@@ -6,7 +6,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import Cave from './Cave'
 import Minifig from './Minifig'
 import { BatmanDirector, RobinDirector } from '../state/director'
-import { NAV, EDGES } from '../state/nav'
+import { NAV, EDGES, ROLES } from '../state/nav'
 import { CAMERA, BATMAN_SCALE, ROBIN_SCALE } from '../config'
 
 /** ?nav — draw the navigation graph for tuning node/edge placement. */
@@ -113,14 +113,14 @@ export default function Scene({ batman, robin }: Props) {
           director={batman}
           url="/models/batman.glb"
           scale={BATMAN_SCALE}
-          startPosition={NAV.westWalk.pos}
+          startPosition={NAV[ROLES.batmanBrood].pos}
         />
         <Minifig
           director={robin}
           url="/models/robin.glb"
           scale={ROBIN_SCALE}
           capeBase={-1.45}
-          startPosition={NAV.table.pos}
+          startPosition={NAV[ROLES.robinHome].pos}
           walkSpeed={2.6}
           bobAmp={0.06}
         />

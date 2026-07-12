@@ -1,30 +1,271 @@
 {
   "nodes": {
-    "computer":  { "pos": [0, 0, 0.1],      "face": [0.3, 2.8, -2.2],  "stop": true },
-    "dish":      { "pos": [-2.9, 0, 0.9],   "face": [-6.0, 3.0, -1.6], "stop": true },
-    "westWalk":  { "pos": [-3.9, 0, 5.3],   "face": [0, 1.5, 0],       "stop": true },
-    "table":     { "pos": [0.9, -0.9, 8.2], "face": [0.9, -0.5, 9.5],  "stop": true },
-    "batmobile": { "pos": [9.2, -2.9, -1.6], "face": [12.2, -1.5, -3.5], "stop": true },
-    "j_plateauS": { "pos": [0, 0, 3.4],      "stop": false },
-    "j_south":    { "pos": [1.5, -0.9, 6.8], "stop": false },
-    "j_eastTop":  { "pos": [2.3, 0, 0.9],    "stop": false },
-    "j_eastMid":  { "pos": [5.2, -1.6, 0.6], "stop": false },
-    "j_bay":      { "pos": [7.2, -2.9, -0.6], "stop": false },
-    "j_se":       { "pos": [5.4, -2.0, 4.8], "stop": false }
+    "j0": {
+      "pos": [
+        -0.016,
+        -0.849,
+        5.444
+      ],
+      "stop": false
+    },
+    "j1": {
+      "pos": [
+        -0.029,
+        -0.849,
+        6.699
+      ],
+      "stop": false
+    },
+    "southComputer": {
+      "pos": [
+        0.546,
+        -0.849,
+        8.035
+      ],
+      "face": [
+        0.546,
+        -0.849,
+        14.435
+      ],
+      "stop": true
+    },
+    "j3": {
+      "pos": [
+        -2.376,
+        -0.849,
+        6.7
+      ],
+      "stop": false
+    },
+    "j4": {
+      "pos": [
+        -3.599,
+        -0.367,
+        6.595
+      ],
+      "stop": false
+    },
+    "cave": {
+      "pos": [
+        -8.412,
+        -0.367,
+        6.613
+      ],
+      "face": [
+        -8.412,
+        -0.367,
+        13.013
+      ],
+      "stop": true
+    },
+    "j6": {
+      "pos": [
+        -0.011,
+        -0.011,
+        2.364
+      ],
+      "stop": false
+    },
+    "computer": {
+      "pos": [
+        -0.008,
+        -0.011,
+        -0.018
+      ],
+      "face": [
+        -0.008,
+        -0.011,
+        6.382
+      ],
+      "stop": true
+    },
+    "generator": {
+      "pos": [
+        -2.631,
+        0.144,
+        1.487
+      ],
+      "face": [
+        -2.631,
+        0.144,
+        7.887
+      ],
+      "stop": true
+    },
+    "j9": {
+      "pos": [
+        2.568,
+        -0.848,
+        6.722
+      ],
+      "stop": false
+    },
+    "j10": {
+      "pos": [
+        5.486,
+        -2.431,
+        6.814
+      ],
+      "stop": false
+    },
+    "j11": {
+      "pos": [
+        6.689,
+        -2.447,
+        5.776
+      ],
+      "stop": false
+    },
+    "j12": {
+      "pos": [
+        6.675,
+        -2.447,
+        2.95
+      ],
+      "stop": false
+    },
+    "j13": {
+      "pos": [
+        6.436,
+        -2.923,
+        1.794
+      ],
+      "stop": false
+    },
+    "j14": {
+      "pos": [
+        6.021,
+        -2.939,
+        1.102
+      ],
+      "stop": false
+    },
+    "j15": {
+      "pos": [
+        6.838,
+        -2.081,
+        0.392
+      ],
+      "stop": false
+    },
+    "j16": {
+      "pos": [
+        8.403,
+        -2.227,
+        -1.972
+      ],
+      "stop": false
+    },
+    "batmobile": {
+      "pos": [
+        9.347,
+        -2.227,
+        -4.686
+      ],
+      "face": [
+        9.347,
+        -2.227,
+        1.714
+      ],
+      "stop": true
+    },
+    "j18": {
+      "pos": [
+        3.146,
+        -0.059,
+        -0.253
+      ],
+      "stop": false
+    },
+    "j19": {
+      "pos": [
+        5.413,
+        -2.923,
+        -0.199
+      ],
+      "stop": false
+    }
   },
   "edges": [
-    ["computer", "dish"],
-    ["computer", "j_plateauS"],
-    ["dish", "j_plateauS"],
-    ["j_plateauS", "westWalk"],
-    ["j_plateauS", "j_south"],
-    ["j_south", "table"],
-    ["j_south", "westWalk"],
-    ["j_south", "j_se"],
-    ["j_se", "j_bay"],
-    ["computer", "j_eastTop"],
-    ["j_eastTop", "j_eastMid"],
-    ["j_eastMid", "j_bay"],
-    ["j_bay", "batmobile"]
+    [
+      "batmobile",
+      "j16"
+    ],
+    [
+      "cave",
+      "j4"
+    ],
+    [
+      "computer",
+      "j6"
+    ],
+    [
+      "generator",
+      "j6"
+    ],
+    [
+      "j0",
+      "j1"
+    ],
+    [
+      "j0",
+      "j6"
+    ],
+    [
+      "j1",
+      "j3"
+    ],
+    [
+      "j1",
+      "j9"
+    ],
+    [
+      "j1",
+      "southComputer"
+    ],
+    [
+      "j10",
+      "j11"
+    ],
+    [
+      "j10",
+      "j9"
+    ],
+    [
+      "j11",
+      "j12"
+    ],
+    [
+      "j12",
+      "j13"
+    ],
+    [
+      "j13",
+      "j14"
+    ],
+    [
+      "j14",
+      "j15"
+    ],
+    [
+      "j14",
+      "j19"
+    ],
+    [
+      "j15",
+      "j16"
+    ],
+    [
+      "j18",
+      "j19"
+    ],
+    [
+      "j18",
+      "j6"
+    ],
+    [
+      "j3",
+      "j4"
+    ]
   ]
 }

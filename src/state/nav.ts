@@ -34,8 +34,36 @@ export const EDGES = (navData.edges as [string, string][]).filter(
 )
 
 // The directors reference these by id; warn loudly if an export dropped one.
-for (const required of ['computer', 'dish', 'westWalk', 'table', 'batmobile']) {
+for (const required of ['computer', 'batmobile']) {
   if (!NAV[required]) console.warn(`[nav] missing required stop "${required}" — check the Blender export`)
+}
+
+/** First existing node among candidates (lets Blender exports use their own names). */
+export function pickNode(...ids: NavId[]): NavId {
+  for (const id of ids) if (NAV[id]) return id
+  return 'computer'
+}
+
+// Character role assignments — add fallbacks here if you rename stops in Blender.
+export const ROLES = {
+  batmanWork: pickNode('computer'),
+  batmanBreak: pickNode('batmobile'),
+  batmanBrood: pickNode('cave', 'westWalk'),
+  robinStation: pickNode('generator', 'dish'),
+  robinHome: pickNode('southComputer', 'table'),
+}
+
+// Sensible facing for the role stops (rotating the empties in Blender is
+// optional — an unrotated empty exports a due-south gaze, which looks off).
+const FACE_OVERRIDES: Record<string, [number, number, number]> = {
+  [ROLES.batmanWork]: [0.3, 2.8, -2.2],       // up at the screen wall
+  [ROLES.robinStation]: [-6.0, 3.0, -1.6],    // the left screen cluster
+  [ROLES.batmanBreak]: [12.2, -1.5, -3.5],    // the Batmobile
+  [ROLES.batmanBrood]: [0, 1.5, 0],           // gaze back over the cave
+  [ROLES.robinHome]: [0.9, -0.5, 9.5],        // the round table console
+}
+for (const [id, f] of Object.entries(FACE_OVERRIDES)) {
+  if (NAV[id]) NAV[id].face = new THREE.Vector3(...f)
 }
 
 const adj = new Map<NavId, NavId[]>()
