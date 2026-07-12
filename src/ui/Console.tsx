@@ -35,6 +35,13 @@ export default function Console({ lines, state, robinState, tool, connected, sim
         {tool && <span className="tool">{tool}</span>}
         {robinBusy && <span className="robin">ROBIN: {ROBIN_LABEL[robinState]}</span>}
         {sim && <span className="simtag">SIM</span>}
+        <button
+          className="reset-view"
+          title="Reset camera (drag to orbit, scroll to zoom, right-drag to pan)"
+          onClick={() => window.dispatchEvent(new Event('batcave-reset-view'))}
+        >
+          ⌂ VIEW
+        </button>
       </div>
       <div className="console">
         <div className="console-title">BAT-COMPUTER ▮ ACTIVITY LOG</div>

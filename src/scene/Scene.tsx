@@ -1,7 +1,8 @@
-import React, { Suspense, useRef } from 'react'
+import React, { Suspense, useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls, useGLTF } from '@react-three/drei'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import Cave from './Cave'
 import Minifig from './Minifig'
 import { BatmanDirector, RobinDirector } from '../state/director'
@@ -16,22 +17,42 @@ function parseCamOverride(): { pos: THREE.Vector3; look: THREE.Vector3 } | null 
   return { pos: new THREE.Vector3(n[0], n[1], n[2]), look: new THREE.Vector3(n[3], n[4], n[5]) }
 }
 
-/** Fixed cinematic camera with a whisper of mouse parallax. */
-function CinematicCamera() {
-  const { camera, pointer } = useThree()
+/**
+ * Orbit/zoom camera, starting from the cinematic angle. Limits keep the view
+ * inside the cave and above the floor. The UI's "reset view" button dispatches
+ * a window event; OrbitControls.reset() restores the saved initial state.
+ */
+function CaveCamera() {
+  const controls = useRef<OrbitControlsImpl>(null)
   const override = useRef(parseCamOverride())
-  const base = useRef(override.current?.pos.clone() ?? CAMERA.position.clone())
-  const lookAt = override.current?.look ?? CAMERA.lookAt
-  useFrame((_, dt) => {
-    const target = base.current.clone()
-    target.x += pointer.x * 0.55
-    target.y += pointer.y * 0.35
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, target.x, 3, dt)
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, target.y, 3, dt)
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, target.z, 3, dt)
-    camera.lookAt(lookAt)
-  })
-  return null
+  const target = override.current?.look ?? CAMERA.lookAt
+  const { camera } = useThree()
+
+  useEffect(() => {
+    if (override.current) {
+      camera.position.copy(override.current.pos)
+      controls.current?.update()
+      controls.current?.saveState()
+    }
+    const onReset = () => controls.current?.reset()
+    window.addEventListener('batcave-reset-view', onReset)
+    return () => window.removeEventListener('batcave-reset-view', onReset)
+  }, [camera])
+
+  return (
+    <OrbitControls
+      ref={controls}
+      target={target.toArray()}
+      enableDamping
+      dampingFactor={0.08}
+      minDistance={4}
+      maxDistance={32}
+      maxPolarAngle={1.45}
+      enablePan
+      panSpeed={0.6}
+      makeDefault
+    />
+  )
 }
 
 interface Props {
@@ -78,7 +99,7 @@ export default function Scene({ batman, robin }: Props) {
           startPosition={WAYPOINTS.robinIdle}
         />
       </Suspense>
-      <CinematicCamera />
+      <CaveCamera />
     </Canvas>
   )
 }
