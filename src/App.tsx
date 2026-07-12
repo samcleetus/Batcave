@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Scene from './scene/Scene'
 import Console from './ui/Console'
-import { BatmanDirector } from './state/director'
+import { BatmanDirector, RobinDirector } from './state/director'
 import { useEventSocket } from './hooks/useEventSocket'
 import { startSim } from './sim'
 import { BatEvent, BatmanState, ConsoleLine } from './types'
@@ -14,21 +14,24 @@ function describe(e: BatEvent): string | null {
     case 'prompt': return `> ${e.detail ?? 'new instructions received'}`
     case 'tool_start': return `${e.tool ?? 'tool'} ${e.detail ? `— ${e.detail}` : 'running…'}`
     case 'tool_end': return null // keep the log tight; starts are enough
-    case 'agent_spawn': return `agent deployed ${e.detail ? `— ${e.detail}` : ''}`
-    case 'agent_done': return 'agent reported back'
+    case 'agent_spawn': return `Robin deployed ${e.detail ? `— ${e.detail}` : ''}`
+    case 'agent_done': return 'Robin reported back'
     case 'session_end': return 'session ended'
   }
 }
 
 export default function App() {
-  const director = useMemo(() => new BatmanDirector(), [])
+  const batman = useMemo(() => new BatmanDirector(), [])
+  const robin = useMemo(() => new RobinDirector(), [])
   const [lines, setLines] = useState<ConsoleLine[]>([])
-  const [uiState, setUiState] = useState<BatmanState>('idle')
+  const [batmanState, setBatmanState] = useState<BatmanState>('idle')
+  const [robinState, setRobinState] = useState<BatmanState>('idle')
   const [uiTool, setUiTool] = useState<string | null>(null)
   const sim = useMemo(() => new URLSearchParams(location.search).has('sim'), [])
 
   const handleEvent = useCallback((e: BatEvent) => {
-    director.handleEvent(e)
+    batman.handleEvent(e)
+    robin.handleEvent(e)
     const text = describe(e)
     if (text) {
       setLines((prev) => [
@@ -36,7 +39,7 @@ export default function App() {
         { id: lineId++, text, ts: e.ts, kind: e.type === 'tool_start' ? 'tool' : 'info' },
       ])
     }
-  }, [director])
+  }, [batman, robin])
 
   const connected = useEventSocket(handleEvent, !sim)
 
@@ -45,19 +48,27 @@ export default function App() {
     return startSim(handleEvent)
   }, [sim, handleEvent])
 
-  // low-frequency poll of the mutable director for UI chips
+  // low-frequency poll of the mutable directors for UI chips
   useEffect(() => {
     const iv = setInterval(() => {
-      setUiState(director.state)
-      setUiTool(director.currentTool)
+      setBatmanState(batman.state)
+      setRobinState(robin.state)
+      setUiTool(batman.currentTool)
     }, 250)
     return () => clearInterval(iv)
-  }, [director])
+  }, [batman, robin])
 
   return (
     <>
-      <Scene director={director} />
-      <Console lines={lines} state={uiState} tool={uiTool} connected={connected} sim={sim} />
+      <Scene batman={batman} robin={robin} />
+      <Console
+        lines={lines}
+        state={batmanState}
+        robinState={robinState}
+        tool={uiTool}
+        connected={connected}
+        sim={sim}
+      />
     </>
   )
 }

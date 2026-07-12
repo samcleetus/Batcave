@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
+import { ground } from './ground'
 
 /**
  * The real batcave, exported from Blender (assets_src/.../test.blend) and
@@ -77,8 +78,15 @@ function CaveModel() {
     console.log('[cave] materials:', JSON.stringify([...seen.entries()]))
   }, [scene])
 
+  // register for character ground-snapping once the (scaled) cave is mounted
+  const caveGroup = React.useRef<THREE.Group>(null)
+  React.useEffect(() => {
+    ground.object = caveGroup.current
+    return () => { ground.object = null }
+  }, [scene])
+
   return (
-    <group scale={CAVE_SCALE} position={[0, FLOOR_LIFT, 0]}>
+    <group ref={caveGroup} scale={CAVE_SCALE} position={[0, FLOOR_LIFT, 0]}>
       <primitive object={scene} />
     </group>
   )

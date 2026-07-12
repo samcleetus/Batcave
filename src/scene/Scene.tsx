@@ -1,10 +1,11 @@
 import React, { Suspense, useRef } from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import Cave from './Cave'
-import Batman from './Batman'
-import { BatmanDirector } from '../state/director'
-import { CAMERA } from '../config'
+import Minifig from './Minifig'
+import { BatmanDirector, RobinDirector } from '../state/director'
+import { CAMERA, BATMAN_SCALE, ROBIN_SCALE, WAYPOINTS } from '../config'
 
 // Debug: ?cam=px,py,pz,lx,ly,lz overrides the fixed camera
 function parseCamOverride(): { pos: THREE.Vector3; look: THREE.Vector3 } | null {
@@ -33,9 +34,12 @@ function CinematicCamera() {
   return null
 }
 
-interface Props { director: BatmanDirector }
+interface Props {
+  batman: BatmanDirector
+  robin: RobinDirector
+}
 
-export default function Scene({ director }: Props) {
+export default function Scene({ batman, robin }: Props) {
   return (
     <Canvas
       camera={{ position: CAMERA.position.toArray(), fov: CAMERA.fov }}
@@ -60,9 +64,24 @@ export default function Scene({ director }: Props) {
 
       <Suspense fallback={null}>
         <Cave />
-        <Batman director={director} />
+        <Minifig
+          director={batman}
+          url="/models/batman.glb"
+          scale={BATMAN_SCALE}
+          startPosition={WAYPOINTS.entrance}
+        />
+        <Minifig
+          director={robin}
+          url="/models/robin.glb"
+          scale={ROBIN_SCALE}
+          capeBase={-1.45}
+          startPosition={WAYPOINTS.robinIdle}
+        />
       </Suspense>
       <CinematicCamera />
     </Canvas>
   )
 }
+
+useGLTF.preload('/models/batman.glb', '/draco/')
+useGLTF.preload('/models/robin.glb', '/draco/')

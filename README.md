@@ -3,7 +3,8 @@
 A 3D batcave that visualizes Claude Code working in real time. Batman mans the
 Batcomputer while your agent codes — he types during tool calls, ponders while
 Claude thinks, wanders to the Batmobile when things go quiet, and broods on the
-overlook after long silences.
+overlook after long silences. When Claude spawns subagents, Robin runs to his
+station at the side screens and works until they report back.
 
 Inspired by [W17ant/Claude-Office](https://github.com/W17ant/Claude-Office),
 rebuilt in 3D (Three.js / react-three-fiber) with a LEGO Batman minifigure and
@@ -40,18 +41,25 @@ Claude Code ──hooks──> Express server (:3334) ──WebSocket──> Rea
 
 Events map onto a single-character state machine:
 
-| Claude Code activity | Batman |
+| Claude Code activity | In the cave |
 |---|---|
-| Session starts / tool calls | Walks to the Batcomputer, types |
-| Quiet 10s while working | Steps back, analyzes |
-| Quiet 60s | Break by the Batmobile |
+| Session starts / tool calls | Batman walks to the Batcomputer, types |
+| Subagent spawned (Task tool) | Robin mans the side screens until it reports back |
+| Quiet 10s while working | Batman steps back, analyzes |
+| Quiet 60s | Break down by the Batmobile |
 | Quiet 3min | Broods on the overlook |
+
+Characters ground-snap by raycasting the cave mesh every frame, and walk
+hand-mapped routes derived from raycasting the Blender scene's floor —
+including the stairs down to the Batmobile bay. Add `&fast` to any URL to
+compress the behavior timers for a quick demo.
 
 ## Assets
 
-- `public/models/batman.glb` — LEGO Batman, preprocessed from a static
-  Sketchfab model into an animatable parts hierarchy (`tools/build_batman.py`
-  splits arms/legs and bakes joint pivots; animation is procedural, no rig).
+- `public/models/batman.glb` / `robin.glb` — LEGO minifigs, preprocessed from
+  static Sketchfab models into animatable parts hierarchies
+  (`tools/build_batman.py`, `tools/build_robin.py` split limbs via connected
+  components and bake joint pivots; animation is procedural, no rig).
 - `public/models/batcave.glb` — exported from the Blender scene via the
   Blender MCP, then optimized with gltf-transform (Draco + WebP: 108 MB → 3 MB).
   The scene's procedural rock/metal materials can't survive glTF export, so
