@@ -32,9 +32,16 @@ interface Props {
   /** base cape X-rotation (Robin's cape ships sticking straight back) */
   capeBase?: number
   startPosition: THREE.Vector3
+  /** units/sec; defaults to WALK_SPEED */
+  walkSpeed?: number
+  /** walk-bounce amplitude — Robin skips, Batman stalks */
+  bobAmp?: number
 }
 
-export default function Minifig({ director, url, scale, capeBase = 0, startPosition }: Props) {
+export default function Minifig({
+  director, url, scale, capeBase = 0, startPosition,
+  walkSpeed = WALK_SPEED, bobAmp = 0.035,
+}: Props) {
   const { scene } = useGLTF(url, '/draco/')
   const root = useRef<THREE.Group>(null!)
 
@@ -67,7 +74,7 @@ export default function Minifig({ director, url, scale, capeBase = 0, startPosit
       if (dist < 0.15) {
         director.reachedWaypoint()
       } else {
-        const step = Math.min(dist, WALK_SPEED * dt)
+        const step = Math.min(dist, walkSpeed * dt)
         to.normalize()
         g.position.x += to.x * step
         g.position.z += to.z * step
@@ -83,7 +90,7 @@ export default function Minifig({ director, url, scale, capeBase = 0, startPosit
     // ---- ground snap ----
     const h = groundHeightAt(g.position.x, groundY.current + scale * 2.5, g.position.z)
     if (h !== null) groundY.current = h
-    const bob = speed ? Math.abs(Math.sin(walkPhase.current)) * 0.035 * scale : 0
+    const bob = speed ? Math.abs(Math.sin(walkPhase.current)) * bobAmp * scale : 0
     g.position.y = THREE.MathUtils.damp(g.position.y, groundY.current + bob, 12, dt)
 
     // ---- pose + oscillation ----

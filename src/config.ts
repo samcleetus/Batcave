@@ -12,7 +12,7 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z)
  */
 export const WAYPOINTS = {
   // stand spots (PlaceIds)
-  computer: V(0, 0, 1.44),
+  computer: V(0, 0, 1.1),   // right up at the keyboard (chair removed from the GLB)
   break: V(7.04, -2.6, -1.6),        // lower bay, by the Batmobile
   overlook: V(-3.84, 0, 6.4),        // south strip end
   entrance: V(-3.84, 0, 7.68),
@@ -36,6 +36,23 @@ const PATHS: Partial<Record<string, THREE.Vector3[]>> = {
   'computer>robinStation': [WAYPOINTS.computer, V(-1.28, 0, 1.28), WAYPOINTS.robinStation],
   'robinIdle>robinStation': [WAYPOINTS.robinIdle, V(0.96, -0.6, 5.44), V(0, 0, 3.84), V(-1.28, 0, 1.92), WAYPOINTS.robinStation],
 }
+
+/**
+ * Open spots Robin strolls between while idle (south plateau, the strip,
+ * the stairs area, his nook below them) — straight lines between these are
+ * clear of furniture, and ground snapping handles the height changes.
+ */
+export const WANDER_SPOTS = [
+  V(0, 0, 3.84),
+  V(-1.28, 0, 1.92),
+  V(-2.56, 0, 3.2),
+  V(-3.84, 0, 5.76),
+  V(-3.84, 0, 7.68),
+  V(0.96, -0.6, 5.44),
+  V(1.6, -0.9, 7.04),
+]
+export const WANDER_PAUSE_MIN = 4_000   // Robin lingers between strolls (ms)
+export const WANDER_PAUSE_MAX = 12_000
 
 /** Route between places; falls back to reversing a path or hubbing via the computer. */
 export function findPath(from: PlaceId, to: PlaceId): THREE.Vector3[] {

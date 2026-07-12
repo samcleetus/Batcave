@@ -97,6 +97,8 @@ export default function Scene({ batman, robin }: Props) {
           scale={ROBIN_SCALE}
           capeBase={-1.45}
           startPosition={WAYPOINTS.robinIdle}
+          walkSpeed={2.6}
+          bobAmp={0.06}
         />
       </Suspense>
       <CaveCamera />

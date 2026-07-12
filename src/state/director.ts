@@ -1,6 +1,9 @@
 import * as THREE from 'three'
 import { BatEvent, BatmanState } from '../types'
-import { WAYPOINTS, findPath, PlaceId, THINKING_AFTER, BREAK_AFTER, BROOD_AFTER, ROBIN_LINGER } from '../config'
+import {
+  WAYPOINTS, findPath, PlaceId, THINKING_AFTER, BREAK_AFTER, BROOD_AFTER,
+  ROBIN_LINGER, WANDER_SPOTS, WANDER_PAUSE_MIN, WANDER_PAUSE_MAX,
+} from '../config'
 
 /**
  * Directors — single-character adaptations of Claude-Office's per-agent
@@ -110,9 +113,26 @@ export class BatmanDirector extends Director {
 export class RobinDirector extends Director {
   activeAgents = 0
   private idleAt = 0
+  private nextWanderAt = Date.now() + 3_000
+  private lastSpot = -1
 
   constructor() {
     super('robinIdle')
+  }
+
+  /** Robin is young and restless — strolls between open spots while idle. */
+  private wander() {
+    let i = Math.floor(Math.random() * WANDER_SPOTS.length)
+    if (i === this.lastSpot) i = (i + 1) % WANDER_SPOTS.length
+    this.lastSpot = i
+    // straight stroll; spots are chosen so the lines are clear, snap does heights
+    this.targets = [WANDER_SPOTS[i].clone()]
+    this.nextState = 'idle'
+    this.faceOnArrive = Math.random() < 0.5 ? WAYPOINTS.caveLook : WAYPOINTS.batmobileLook
+    this.state = 'walking'
+    // wandering shouldn't confuse place-based routing: he's "around the idle area"
+    this.place = 'robinIdle'
+    this.nextWanderAt = Date.now() + WANDER_PAUSE_MIN + Math.random() * (WANDER_PAUSE_MAX - WANDER_PAUSE_MIN)
   }
 
   handleEvent(e: BatEvent) {
@@ -144,6 +164,11 @@ export class RobinDirector extends Director {
     if (this.state === 'working' && this.activeAgents === 0 && this.idleAt && now > this.idleAt) {
       this.idleAt = 0
       this.goTo('robinIdle', 'idle', WAYPOINTS.caveLook)
+      this.nextWanderAt = now + WANDER_PAUSE_MIN
+      return
+    }
+    if (this.state === 'idle' && now > this.nextWanderAt) {
+      this.wander()
     }
   }
 }
