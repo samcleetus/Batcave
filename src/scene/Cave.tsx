@@ -50,15 +50,14 @@ function CaveModel() {
         if (!seen.has(m.name)) {
           seen.set(m.name, `${m.type} map=${!!(m as THREE.MeshStandardMaterial).map}`)
         }
-        let out = replacements.get(m)
-        if (!out) {
+        let out: THREE.Material = replacements.get(m) ?? m
+        if (!replacements.has(m)) {
           const std = m as THREE.MeshStandardMaterial
           if (/tv|emission|screen|window/i.test(m.name)) {
             if (std.emissiveIntensity !== undefined) {
               std.emissiveIntensity = Math.max(std.emissiveIntensity, 1.4)
               std.toneMapped = false
             }
-            out = m
           } else if (TINTS[m.name] !== undefined) {
             // rebuild: original exported white/unlit
             const t = TINTS[m.name]
@@ -69,7 +68,6 @@ function CaveModel() {
               metalness: t.metal ?? 0,
             })
           }
-          out = out ?? m
           replacements.set(m, out)
         }
         if (Array.isArray(o.material)) o.material[i] = out
