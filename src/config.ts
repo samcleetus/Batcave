@@ -12,7 +12,7 @@ const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z)
  */
 export const WAYPOINTS = {
   // stand spots (PlaceIds)
-  computer: V(0, 0, 1.1),   // right up at the keyboard (chair removed from the GLB)
+  computer: V(0, 0, 0.1),   // right up at the keyboard (chair removed from the GLB)
   break: V(7.04, -2.6, -1.6),        // lower bay, by the Batmobile
   overlook: V(-3.84, 0, 6.4),        // south strip end
   entrance: V(-3.84, 0, 7.68),
