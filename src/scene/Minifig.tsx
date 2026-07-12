@@ -86,6 +86,7 @@ export default function Minifig({
       yaw.current = Math.atan2(f.x - g.position.x, f.z - g.position.z)
     }
     g.rotation.y = THREE.MathUtils.damp(g.rotation.y, yaw.current, 8, dt)
+    director.position.copy(g.position) // keep the director's live position fresh
 
     // ---- ground snap ----
     const h = groundHeightAt(g.position.x, groundY.current + scale * 2.5, g.position.z)

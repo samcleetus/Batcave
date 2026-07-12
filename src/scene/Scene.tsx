@@ -6,7 +6,31 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import Cave from './Cave'
 import Minifig from './Minifig'
 import { BatmanDirector, RobinDirector } from '../state/director'
-import { CAMERA, BATMAN_SCALE, ROBIN_SCALE, WAYPOINTS } from '../config'
+import { NAV, EDGES } from '../state/nav'
+import { CAMERA, BATMAN_SCALE, ROBIN_SCALE } from '../config'
+
+/** ?nav — draw the navigation graph for tuning node/edge placement. */
+function NavDebug() {
+  if (!new URLSearchParams(location.search).has('nav')) return null
+  return (
+    <group>
+      {Object.entries(NAV).map(([id, n]) => (
+        <mesh key={id} position={[n.pos.x, n.pos.y + 0.3, n.pos.z]}>
+          <sphereGeometry args={[n.stop ? 0.35 : 0.18, 12, 12]} />
+          <meshBasicMaterial color={n.stop ? '#ff3b1f' : '#ffb01f'} />
+        </mesh>
+      ))}
+      {EDGES.map(([a, b], i) => {
+        const pa = NAV[a].pos, pb = NAV[b].pos
+        const geo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(pa.x, pa.y + 0.3, pa.z),
+          new THREE.Vector3(pb.x, pb.y + 0.3, pb.z),
+        ])
+        return <line key={i}><primitive object={geo} attach="geometry" /><lineBasicMaterial color="#ff3b1f" /></line>
+      })}
+    </group>
+  )
+}
 
 // Debug: ?cam=px,py,pz,lx,ly,lz overrides the fixed camera
 function parseCamOverride(): { pos: THREE.Vector3; look: THREE.Vector3 } | null {
@@ -89,17 +113,18 @@ export default function Scene({ batman, robin }: Props) {
           director={batman}
           url="/models/batman.glb"
           scale={BATMAN_SCALE}
-          startPosition={WAYPOINTS.entrance}
+          startPosition={NAV.westWalk.pos}
         />
         <Minifig
           director={robin}
           url="/models/robin.glb"
           scale={ROBIN_SCALE}
           capeBase={-1.45}
-          startPosition={WAYPOINTS.robinIdle}
+          startPosition={NAV.tableSpot.pos}
           walkSpeed={2.6}
           bobAmp={0.06}
         />
+        <NavDebug />
       </Suspense>
       <CaveCamera />
     </Canvas>

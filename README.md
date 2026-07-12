@@ -53,10 +53,12 @@ Events map onto a single-character state machine:
 | Quiet 60s | Break down by the Batmobile |
 | Quiet 3min | Broods on the overlook |
 
-Characters ground-snap by raycasting the cave mesh every frame, and walk
-hand-mapped routes derived from raycasting the Blender scene's floor —
-including the stairs down to the Batmobile bay. Add `&fast` to any URL to
-compress the behavior timers for a quick demo.
+Movement is constrained to a hand-built navigation graph (`src/state/nav.ts`):
+characters only stop at designated spots (Batcomputer, side station, west
+walkway, table platform, Batmobile) and only walk along its edges — down the
+stairs, around the generator, into the bay. Heights come from per-frame
+raycasts against the cave mesh. Add `&fast` to compress the behavior timers
+for a demo, and `&nav` to render the graph for tuning.
 
 ## Assets
 

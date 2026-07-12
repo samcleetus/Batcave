@@ -1,17 +1,18 @@
 import * as THREE from 'three'
 import { BatEvent, BatmanState } from '../types'
 import {
-  WAYPOINTS, findPath, PlaceId, THINKING_AFTER, BREAK_AFTER, BROOD_AFTER,
-  ROBIN_LINGER, WANDER_SPOTS, WANDER_PAUSE_MIN, WANDER_PAUSE_MAX,
+  THINKING_AFTER, BREAK_AFTER, BROOD_AFTER, ROBIN_LINGER,
+  WANDER_PAUSE_MIN, WANDER_PAUSE_MAX,
 } from '../config'
+import { NAV, NavId, navPath, nearestNode, ROBIN_WANDER } from './nav'
 
 /**
- * Directors — single-character adaptations of Claude-Office's per-agent
- * state machine. Mutable on purpose: the 3D loop reads/writes every frame
- * without React renders; the UI polls at low frequency.
+ * Directors — single-character state machines driven by Claude Code events.
+ * Movement is constrained to the nav graph (state/nav.ts): characters only
+ * stop at stop-nodes and only walk along graph edges.
  *
- * Movement is a waypoint queue along hand-mapped walkable routes (see
- * config.PATHS — derived from raycasting the cave floor in Blender).
+ * Mutable on purpose: the 3D loop reads/writes every frame without React
+ * renders; the UI polls at low frequency.
  */
 export abstract class Director {
   state: BatmanState = 'idle'
@@ -19,15 +20,19 @@ export abstract class Director {
   targets: THREE.Vector3[] = []
   nextState: BatmanState = 'idle'
   faceOnArrive: THREE.Vector3 | null = null
-  place: PlaceId
-  private pendingPlace: PlaceId
+  /** current/last nav node */
+  place: NavId
+  /** live position, written back by the Minifig each frame */
+  position = new THREE.Vector3()
+  private pendingPlace: NavId
 
   lastActivity = 0
   currentTool: string | null = null
 
-  constructor(startPlace: PlaceId) {
-    this.place = startPlace
-    this.pendingPlace = startPlace
+  constructor(startNode: NavId) {
+    this.place = startNode
+    this.pendingPlace = startNode
+    this.position.copy(NAV[startNode].pos)
   }
 
   abstract handleEvent(e: BatEvent): void
@@ -37,18 +42,22 @@ export abstract class Director {
     this.lastActivity = Date.now()
   }
 
-  goTo(dest: PlaceId, then: BatmanState, face: THREE.Vector3 | null = null) {
+  goTo(dest: NavId, then: BatmanState) {
     if (this.pendingPlace === dest) {
-      // already there or already en route — just make sure the end state fits
       if (this.targets.length === 0) this.state = then
       this.nextState = then
-      this.faceOnArrive = face ?? this.faceOnArrive
       return
     }
-    this.targets = findPath(this.place, dest).map((v) => v.clone())
+    // mid-walk redirects re-enter the graph at the nearest node
+    const from = this.targets.length > 0 ? nearestNode(this.position) : this.place
+    const path = navPath(from, dest)
+    // if the nearest node is behind us, walk to it first so we stay on-path
+    if (from !== this.place && from !== dest) path.unshift(NAV[from].pos.clone())
+    this.targets = path
+    this.place = from
     this.pendingPlace = dest
     this.nextState = then
-    this.faceOnArrive = face
+    this.faceOnArrive = NAV[dest].face?.clone() ?? null
     this.state = 'walking'
   }
 
@@ -66,9 +75,8 @@ export class BatmanDirector extends Director {
   sessionActive = false
 
   constructor() {
-    super('entrance')
-    // walk in on load
-    this.goTo('computer', 'idle', WAYPOINTS.screensLook)
+    super('westWalk')
+    this.goTo('computer', 'idle') // walk in on load
   }
 
   handleEvent(e: BatEvent) {
@@ -76,13 +84,13 @@ export class BatmanDirector extends Director {
       case 'session_start':
         this.sessionActive = true
         this.touch()
-        this.goTo('computer', 'working', WAYPOINTS.screensLook)
+        this.goTo('computer', 'working')
         break
       case 'prompt':
       case 'tool_start':
         this.currentTool = e.tool ?? this.currentTool
         this.touch()
-        this.goTo('computer', 'working', WAYPOINTS.screensLook)
+        this.goTo('computer', 'working')
         break
       case 'tool_end':
         this.touch()
@@ -103,9 +111,9 @@ export class BatmanDirector extends Director {
       this.state = 'thinking'
       this.currentTool = null
     } else if (this.state === 'thinking' && quiet > BREAK_AFTER) {
-      this.goTo('break', 'break', WAYPOINTS.batmobileLook)
+      this.goTo('batmobile', 'break')          // wrench on the car
     } else if (this.state === 'break' && quiet > BROOD_AFTER) {
-      this.goTo('overlook', 'brooding', WAYPOINTS.caveLook)
+      this.goTo('westWalk', 'brooding')        // brood by the crates
     }
   }
 }
@@ -114,24 +122,16 @@ export class RobinDirector extends Director {
   activeAgents = 0
   private idleAt = 0
   private nextWanderAt = Date.now() + 3_000
-  private lastSpot = -1
 
   constructor() {
-    super('robinIdle')
+    super('tableSpot')
   }
 
-  /** Robin is young and restless — strolls between open spots while idle. */
+  /** Robin is young and restless — strolls between permitted stop spots. */
   private wander() {
-    let i = Math.floor(Math.random() * WANDER_SPOTS.length)
-    if (i === this.lastSpot) i = (i + 1) % WANDER_SPOTS.length
-    this.lastSpot = i
-    // straight stroll; spots are chosen so the lines are clear, snap does heights
-    this.targets = [WANDER_SPOTS[i].clone()]
-    this.nextState = 'idle'
-    this.faceOnArrive = Math.random() < 0.5 ? WAYPOINTS.caveLook : WAYPOINTS.batmobileLook
-    this.state = 'walking'
-    // wandering shouldn't confuse place-based routing: he's "around the idle area"
-    this.place = 'robinIdle'
+    const options = ROBIN_WANDER.filter((id) => id !== this.place)
+    const dest = options[Math.floor(Math.random() * options.length)]
+    this.goTo(dest, 'idle')
     this.nextWanderAt = Date.now() + WANDER_PAUSE_MIN + Math.random() * (WANDER_PAUSE_MAX - WANDER_PAUSE_MIN)
   }
 
@@ -141,7 +141,7 @@ export class RobinDirector extends Director {
         this.activeAgents++
         this.currentTool = e.detail || 'agent task'
         this.touch()
-        this.goTo('robinStation', 'working', WAYPOINTS.robinScreensLook)
+        this.goTo('dish', 'working')
         break
       case 'agent_done':
         this.activeAgents = Math.max(0, this.activeAgents - 1)
@@ -163,7 +163,7 @@ export class RobinDirector extends Director {
     if (this.state === 'walking') return
     if (this.state === 'working' && this.activeAgents === 0 && this.idleAt && now > this.idleAt) {
       this.idleAt = 0
-      this.goTo('robinIdle', 'idle', WAYPOINTS.caveLook)
+      this.goTo('tableSpot', 'idle')
       this.nextWanderAt = now + WANDER_PAUSE_MIN
       return
     }
