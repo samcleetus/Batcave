@@ -1,0 +1,40 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body, #root { height: 100%; background: #05070c; overflow: hidden; }
+body { font-family: 'SF Mono', ui-monospace, Menlo, monospace; }
+
+.status-chip {
+  position: fixed; top: 16px; left: 16px; z-index: 10;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(8, 10, 16, 0.82);
+  border: 1px solid rgba(255, 211, 77, 0.25);
+  border-radius: 8px; padding: 8px 14px;
+  color: #d7dbe6; font-size: 12px; letter-spacing: 0.08em;
+  backdrop-filter: blur(6px);
+}
+.status-chip .brand { color: #ffd34d; font-weight: 700; }
+.status-chip .state { color: #8fa1c0; }
+.status-chip .tool { color: #37e0ff; }
+.status-chip .simtag { color: #ff8844; border: 1px solid #ff884466; border-radius: 4px; padding: 1px 5px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.on { background: #35e06a; box-shadow: 0 0 8px #35e06a; }
+.dot.off { background: #e04040; }
+.dot.sim { background: #ff8844; box-shadow: 0 0 8px #ff8844; }
+
+.console {
+  position: fixed; left: 16px; bottom: 16px; z-index: 10;
+  width: min(430px, calc(100vw - 32px));
+  background: rgba(6, 8, 13, 0.85);
+  border: 1px solid rgba(55, 224, 255, 0.18);
+  border-radius: 10px; padding: 12px 14px;
+  backdrop-filter: blur(6px);
+  font-size: 12px; line-height: 1.75;
+}
+.console-title {
+  color: #ffd34d; font-size: 10px; letter-spacing: 0.22em;
+  border-bottom: 1px solid rgba(255, 211, 77, 0.15);
+  padding-bottom: 6px; margin-bottom: 6px;
+}
+.console .line { color: #9fb2d0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.console .line.tool { color: #37e0ff; }
+.console .line.system { color: #ffd34d; }
+.console .ts { color: #55617a; margin-right: 8px; font-size: 10px; }

@@ -1,0 +1,31 @@
+{
+  "name": "batcave",
+  "version": "0.1.0",
+  "description": "A 3D batcave that visualizes Claude Code working in real time — Batman at the Batcomputer.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3333",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 3333",
+    "server": "node server/index.js",
+    "start": "bash scripts/start-batcave.sh",
+    "stop": "bash scripts/stop-batcave.sh"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "express": "^4.21.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
