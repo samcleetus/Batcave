@@ -44,19 +44,19 @@ export default function Scene({ director }: Props) {
       shadows={false}
     >
       <color attach="background" args={['#05070c']} />
-      <fog attach="fog" args={['#05070c', 14, 34]} />
+      <fog attach="fog" args={['#05070c', 22, 55]} />
 
       {/* moody base light */}
       <ambientLight intensity={0.55} color="#54749e" />
       <hemisphereLight intensity={0.5} color="#3d5a86" groundColor="#0a0c12" />
       {/* moonish shaft from the cave mouth */}
-      <spotLight position={[12, 14, 10]} angle={0.6} penumbra={0.7} intensity={900} color="#8ea6d4" distance={60} />
-      {/* warm work light over the platform */}
-      <pointLight position={[0, 5.5, -4]} intensity={90} distance={18} color="#ffd9a0" />
-      {/* rim light so Batman reads against the dark — from behind the screens */}
-      <pointLight position={[0, 3.2, -9.5]} intensity={70} distance={12} color="#4fc3ff" />
-      {/* soft fill over the batmobile bay */}
-      <pointLight position={[-7, 4.5, 3]} intensity={55} distance={13} color="#7a8fc0" />
+      <spotLight position={[16, 18, 14]} angle={0.65} penumbra={0.7} intensity={1600} color="#8ea6d4" distance={80} />
+      {/* warm work light over the command centre */}
+      <pointLight position={[0, 6, 0]} intensity={110} distance={20} color="#ffd9a0" />
+      {/* screen glow so Batman reads against the dark */}
+      <pointLight position={[0.3, 3, -1.5]} intensity={60} distance={12} color="#4fc3ff" />
+      {/* fill over the batmobile bay */}
+      <pointLight position={[11, 3.5, -3]} intensity={70} distance={16} color="#7a8fc0" />
 
       <Suspense fallback={null}>
         <Cave />

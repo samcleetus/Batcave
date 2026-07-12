@@ -24,22 +24,13 @@ npm stop             # shut it down
 
 ## Connect Claude Code
 
-Add to `~/.claude/settings.json` (replace the path):
-
-```json
-{
-  "hooks": {
-    "SessionStart":     [{ "hooks": [{ "type": "command", "command": "bash /path/to/Batcave/hooks/bat-tracker.sh" }] }],
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "bash /path/to/Batcave/hooks/bat-tracker.sh" }] }],
-    "PreToolUse":       [{ "hooks": [{ "type": "command", "command": "bash /path/to/Batcave/hooks/bat-tracker.sh" }] }],
-    "PostToolUse":      [{ "hooks": [{ "type": "command", "command": "bash /path/to/Batcave/hooks/bat-tracker.sh" }] }],
-    "Stop":             [{ "hooks": [{ "type": "command", "command": "bash /path/to/Batcave/hooks/bat-tracker.sh" }] }]
-  }
-}
+```bash
+bash hooks/install-hooks.sh
 ```
 
-The hook fails silently if the Batcave isn't running — it never interferes
-with Claude Code.
+This merges the Batcave hook into `~/.claude/settings.json` (SessionStart,
+UserPromptSubmit, PreToolUse, PostToolUse, Stop). The hook fails silently if
+the Batcave isn't running — it never interferes with Claude Code.
 
 ## How it works
 
@@ -61,8 +52,11 @@ Events map onto a single-character state machine:
 - `public/models/batman.glb` — LEGO Batman, preprocessed from a static
   Sketchfab model into an animatable parts hierarchy (`tools/build_batman.py`
   splits arms/legs and bakes joint pivots; animation is procedural, no rig).
-- `public/models/batcave.glb` — exported from `assets_src/test.blend`
-  (until it lands, `src/scene/Cave.tsx` renders a procedural placeholder cave).
+- `public/models/batcave.glb` — exported from the Blender scene via the
+  Blender MCP, then optimized with gltf-transform (Draco + WebP: 108 MB → 3 MB).
+  The scene's procedural rock/metal materials can't survive glTF export, so
+  `Cave.tsx` re-tints them at runtime; the Draco decoder is served locally
+  from `public/draco/`.
 
 ## Project structure
 

@@ -27,7 +27,7 @@ const POSES: Record<string, { armX: number; legX: number; headZ: number; capeX: 
 interface Props { director: BatmanDirector }
 
 export default function Batman({ director }: Props) {
-  const { scene } = useGLTF('/models/batman.glb')
+  const { scene } = useGLTF('/models/batman.glb', '/draco/')
   const root = useRef<THREE.Group>(null!)
 
   const parts = useMemo(() => {
@@ -118,4 +118,4 @@ export default function Batman({ director }: Props) {
   )
 }
 
-useGLTF.preload('/models/batman.glb')
+useGLTF.preload('/models/batman.glb', '/draco/')
